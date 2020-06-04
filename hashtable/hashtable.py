@@ -15,6 +15,7 @@ class HashTableEntry:
         return f'HashTableEntry({repr(self.key)}, {repr(self.value)})'
 
 
+
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
 
@@ -205,8 +206,7 @@ class HashTable:
                     self.put(current.key, current.value)
                     current = current.next
             self.capacity = new_capacity
-
-
+ 
 
 if __name__ == "__main__":
     ht = HashTable(8)
