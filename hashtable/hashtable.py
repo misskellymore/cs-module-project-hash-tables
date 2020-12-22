@@ -1,3 +1,7 @@
+from linked_list import LinkedList
+import sys
+sys.path.append('../hashtable/linked_list')
+
 class HashTableEntry:
     """
     Linked List hash table key/value pair
@@ -6,6 +10,10 @@ class HashTableEntry:
         self.key = key
         self.value = value
         self.next = None
+
+    def __repr__(self):
+        return f'HashTableEntry({repr(self.key)}, {repr(self.value)})'
+
 
 
 # Hash table can't have fewer than this many slots
@@ -20,8 +28,15 @@ class HashTable:
     Implement this.
     """
 
-    def __init__(self, capacity):
+    def __init__(self, capacity = MIN_CAPACITY):
         # Your code here
+
+        # self.capacity = [None] * MIN_CAPACITY
+        self.storage = [LinkedList()] * MIN_CAPACITY
+        self.count = 0
+        self.capacity = capacity
+
+
 
 
     def get_num_slots(self):
@@ -35,6 +50,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.capacity
 
 
     def get_load_factor(self):
@@ -44,6 +60,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.count / self.capacity
 
 
     def fnv1(self, key):
@@ -53,7 +70,21 @@ class HashTable:
         Implement this, and/or DJB2.
         """
 
-        # Your code here
+        """
+        Returns: The FNV-1a (alternate) hash of a given string
+        """
+        # determines the index into which the data is put
+        #Constants
+        FNV_prime = 1099511628211
+        offset_basis = 14695981039346656037
+        seed = 0
+
+        #FNV-1a Hash Function
+        hash = offset_basis + seed
+        for char in key:
+            hash = hash ^ ord(char)
+            hash = hash * FNV_prime
+        return hash
 
 
     def djb2(self, key):
@@ -70,8 +101,9 @@ class HashTable:
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        # returns an index value for a key
+        return self.fnv1(key) % len(self.storage)
+        #return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
@@ -82,6 +114,26 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # stores value in a particular slot
+        slot = self.hash_index(key)        
+        current = self.storage[slot].head
+
+        # for little to no collisions
+        # find the slot for the key
+        # search the liked list for the key
+        # if found, update it
+        # if not found, make a new HashTableEntry and
+        # add it to the list
+
+        while current:
+            if current.key == key:
+                current.value = value
+            current = current.next
+
+        entry = HashTableEntry(key, value)
+        self.storage[slot].insert_at_head(entry)
+        self.count += 1
+
 
 
     def delete(self, key):
@@ -93,6 +145,15 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        self.put(key, None)
+        self.count -=1 
+
+        # for little to no collisions
+        # find the slot for the key
+        # search the liked list for the key
+        # if found, delete it from the linked list, then
+        # return the delted value
+        # if not found, return None
 
 
     def get(self, key):
@@ -104,6 +165,22 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # gets the value from a particular slot
+        slot = self.hash_index(key)
+        current = self.storage[slot].head
+        
+        while current:
+            if current.key == key:
+                return current.value
+            current = current.next
+        return None
+
+
+        # for little to no collisions
+        # find the slot for the key
+        # search the liked list for the key
+        # if found return value
+        # if not found, return None
 
 
     def resize(self, new_capacity):
@@ -114,8 +191,22 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
-
+        # 1. Allocate a new array of bigger size, typically double the previous size
+        # 2. Traverse the old hash table => O(n) over the number of elems in the hash table
+        #       for each of its elems:
+        #           figure its slot in the bigger, new array
+        #           put it there
+        
+        if self.get_load_factor() >= 0.7:
+            old_storage = self.storage
+            self.storage = [LinkedList()] * new_capacity
+            for item in old_storage:
+                current = item.head
+                while current:
+                    self.put(current.key, current.value)
+                    current = current.next
+            self.capacity = new_capacity
+ 
 
 if __name__ == "__main__":
     ht = HashTable(8)
